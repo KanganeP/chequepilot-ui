@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
     Box,
     Card,
@@ -12,57 +13,262 @@ import {
     Paper,
     Divider,
 } from "@mui/material";
+import { toWords } from "number-to-words";
 
 export default function UploadChequePage() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState("");
+    const [detectionImage, setDetectionImage] = useState("");
+    const [errors, setErrors] = useState({});
+    const [chequeTypes, setChequeTypes] = useState([]);
+    const [chequeCategories, setChequeCategories] = useState([]);
+
+    useEffect(() => {
+
+        loadMasters();
+
+    }, []);
+
+    const loadMasters = async () => {
+
+        const types = await axios.get(
+            "http://localhost:3001/api/cheque/types"
+        );
+
+        const categories = await axios.get(
+            "http://localhost:3001/api/cheque/categories"
+        );
+
+        setChequeTypes(types.data);
+
+        setChequeCategories(categories.data);
+
+    };
 
     const [formData, setFormData] = useState({
-        chequeType: "Credit",
-        chequeCategory: "Regular",
+        chequeTypeId: "",
+        chequeCategoryId: "",
+
         partyName: "",
+        payeeName: "",
+
         bankName: "",
+        bankAddress: "",
+        ifscCode: "",
+        micrCode: "",
+
         chequeNumber: "",
         accountNumber: "",
+
         amount: "",
+        amountInWords: "",
+
         chequeDate: "",
+        clearanceDate: "",
+
+        remarks: "",
+        signature: ""
     });
 
+    const formatDate = (value) => {
+        const numbers = value.replace(/\D/g, "");
+
+        if (numbers.length <= 2)
+            return numbers;
+
+        if (numbers.length <= 4)
+            return numbers.slice(0, 2) + "/" + numbers.slice(2);
+
+        return (
+            numbers.slice(0, 2) +
+            "/" +
+            numbers.slice(2, 4) +
+            "/" +
+            numbers.slice(4, 8)
+        );
+    };
+
+    const validateForm = () => {
+
+        let temp = {};
+
+        if (!formData.partyName.trim())
+            temp.partyName = "Party Name is required";
+
+        if (!formData.payeeName.trim())
+            temp.payeeName = "Payee Name is required";
+
+        if (!formData.bankName.trim())
+            temp.bankName = "Bank Name is required";
+
+        if (!formData.ifscCode.trim())
+            temp.ifscCode = "IFSC Code is required";
+        else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode))
+            temp.ifscCode = "Invalid IFSC";
+
+        if (!formData.accountNumber.trim())
+            temp.accountNumber = "Account Number is required";
+
+        if (!formData.chequeNumber.trim())
+            temp.chequeNumber = "Cheque Number is required";
+
+        if (!formData.amount)
+            temp.amount = "Amount is required";
+
+        if (!formData.chequeDate)
+            temp.chequeDate = "Cheque Date is required";
+
+        if (!formData.bankAddress.trim())
+            temp.bankAddress = "Bank Address is required";
+
+        if (!formData.amountInWords.trim())
+            temp.amountInWords = "Amount in Words is required";
+
+        setErrors(temp);
+
+        return Object.keys(temp).length === 0;
+    };
+
     const handleImageChange = (event) => {
+
         const file = event.target.files[0];
 
         if (file) {
+
             setImage(file);
-            setPreview(URL.createObjectURL(file));
+
+            setPreview(
+                URL.createObjectURL(file)
+            );
+
+        }
+
+    };
+
+    const handleOCRScan = async () => {
+        if (!image) {
+            alert("Please select a cheque image.");
+            return;
+        }
+        try {
+            const formDataObj = new FormData();
+            formDataObj.append("file", image);
+            const response = await axios.post(
+                "http://localhost:8000/process/",
+                formDataObj,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                }
+            );
+            console.log(response.data);
+            if (response.data.success) {
+                const amount = response.data.amount || "";
+                setFormData((prev) => ({
+                    ...prev,
+                    amount,
+                    partyName: response.data.partyName || "",
+                    payeeName: response.data.payeeName || "",
+                    bankName: response.data.bankName || "",
+                    ifscCode: response.data.ifscCode || "",
+                    bankAddress: response.data.bankAddress || "",
+                    accountNumber: response.data.accountNumber || "",
+                    chequeNumber: response.data.chequeNumber || "",
+                    chequeDate: response.data.date || "",
+                    amountInWords:
+                        amount === ""
+                            ? ""
+                            : toWords(Number(amount))
+                                .replace(/\b\w/g, c => c.toUpperCase()) + " Rupees Only",
+                    signature: response.data.signature || ""
+                }));
+
+                setDetectionImage(
+                    "http://localhost:8000" +
+                    response.data.detectionImage
+                );
+
+                <img
+                    src={detectionImage}
+                    alt="Detection"
+                    style={{ width: "100%" }}
+                />
+                alert("OCR Scan Completed");
+            }
+            else {
+                alert(response.data.error);
+            }
+        }
+        catch (error) {
+            console.log(error);
+            alert("Unable to connect Python API");
         }
     };
 
-    const handleOCRScan = () => {
-        // Dummy OCR Data
-        setFormData({
-            ...formData,
-            partyName: "ABC Traders",
-            bankName: "State Bank of India",
-            chequeNumber: "123456",
-            accountNumber: "9876543210",
-            amount: "25000",
-            chequeDate: "2026-06-20",
-        });
-
-        alert("OCR Scan Completed");
-    };
-
     const handleChange = (e) => {
+        let { name, value } = e.target;
+
+        if (name === "amount") {
+
+            value = value.replace(/[^\d.]/g, "");
+
+            setFormData(prev => ({
+                ...prev,
+                amount: value,
+                amountInWords:
+                    value === ""
+                        ? ""
+                        : toWords(Number(value))
+                            .replace(/\b\w/g, c => c.toUpperCase()) + " Rupees Only"
+            }));
+
+            return;
+        }
+        if (name === "chequeDate") {
+            value = formatDate(value);
+        }
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [name]: value
         });
     };
 
-    const handleUpload = () => {
-        console.log(formData);
-        alert("Cheque Uploaded Successfully");
+    const handleUpload = async () => {
+
+        if (!validateForm()) return;
+
+        try {
+
+            const response = await axios.post(
+                "http://localhost:3001/api/cheque",
+                formData,
+                {
+                    shopId: "9d5d9d98-95d3-4982-a8e7-3c33e5e84e61",
+                    userId: "f6f9486a-10fd-4d4d-9a3f-a7b7d4f42b31"
+                }
+            );
+
+            console.log(response.data);
+
+            alert("Cheque Saved Successfully");
+
+        } catch (err) {
+
+            console.log(err);
+
+            if (err.response) {
+                console.log(err.response.data);
+                alert(err.response.data.error || JSON.stringify(err.response.data));
+            } else {
+                alert(err.message);
+            }
+
+        }
+
     };
+
+
 
     return (
         <Box
@@ -238,6 +444,59 @@ export default function UploadChequePage() {
                             </Box>
                         )}
 
+                        {/* <Grid container spacing={2} mt={2}>
+
+                            <Grid item xs={12} md={6}>
+
+                                <Typography
+                                    fontWeight="bold"
+                                    mb={1}
+                                >
+                                    Original Image
+                                </Typography>
+
+                                <img
+                                    src={preview}
+                                    alt="Original"
+                                    style={{
+                                        width: "100%",
+                                        height: 300,
+                                        objectFit: "contain",
+                                        border: "1px solid #ddd",
+                                        borderRadius: 10
+                                    }}
+                                />
+
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+
+                                <Typography
+                                    fontWeight="bold"
+                                    mb={1}
+                                >
+                                    YOLO Detection
+                                </Typography>
+
+                                {
+                                    detectionImage &&
+                                    <img
+                                        src={detectionImage}
+                                        alt="Detection"
+                                        style={{
+                                            width: "100%",
+                                            height: 300,
+                                            objectFit: "contain",
+                                            border: "1px solid #ddd",
+                                            borderRadius: 10
+                                        }}
+                                    />
+                                }
+
+                            </Grid>
+
+                        </Grid> */}
+
                         <Divider sx={{ my: 4 }} />
 
                         <Grid container spacing={3}>
@@ -248,21 +507,20 @@ export default function UploadChequePage() {
 
                                 <RadioGroup
                                     row
-                                    value={formData.chequeType}
+                                    name="chequeTypeId"
+                                    value={formData.chequeTypeId}
                                     onChange={handleChange}
-                                    name="chequeType"
                                 >
-                                    <FormControlLabel
-                                        value="Credit"
-                                        control={<Radio />}
-                                        label="Credit"
-                                    />
-
-                                    <FormControlLabel
-                                        value="Debit"
-                                        control={<Radio />}
-                                        label="Debit"
-                                    />
+                                    {
+                                        chequeTypes.map(type => (
+                                            <FormControlLabel
+                                                key={type.id}
+                                                value={type.id}
+                                                control={<Radio />}
+                                                label={type.type_name}
+                                            />
+                                        ))
+                                    }
                                 </RadioGroup>
                             </Grid>
 
@@ -273,21 +531,20 @@ export default function UploadChequePage() {
 
                                 <RadioGroup
                                     row
-                                    value={formData.chequeCategory}
+                                    name="chequeCategoryId"
+                                    value={formData.chequeCategoryId}
                                     onChange={handleChange}
-                                    name="chequeCategory"
                                 >
-                                    <FormControlLabel
-                                        value="Regular"
-                                        control={<Radio />}
-                                        label="Regular"
-                                    />
-
-                                    <FormControlLabel
-                                        value="Security"
-                                        control={<Radio />}
-                                        label="Security"
-                                    />
+                                    {
+                                        chequeCategories.map(category => (
+                                            <FormControlLabel
+                                                key={category.id}
+                                                value={category.id}
+                                                control={<Radio />}
+                                                label={category.category_name}
+                                            />
+                                        ))
+                                    }
                                 </RadioGroup>
                             </Grid>
                         </Grid>
@@ -297,6 +554,10 @@ export default function UploadChequePage() {
                             size="large"
                             sx={{ mt: 3 }}
                             onClick={handleOCRScan}
+                            disabled={
+                                !formData.chequeTypeId ||
+                                !formData.chequeCategoryId
+                            }
                         >
                             OCR Scan Cheque
                         </Button>
@@ -319,6 +580,19 @@ export default function UploadChequePage() {
                                     name="partyName"
                                     value={formData.partyName}
                                     onChange={handleChange}
+                                    error={!!errors.partyName}
+                                    helperText={errors.partyName}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Payee Name"
+                                    name="payeeName"
+                                    value={formData.payeeName}
+                                    onChange={handleChange}
+                                    error={!!errors.payeeName}
+                                    helperText={errors.payeeName}
                                 />
                             </Grid>
 
@@ -329,6 +603,20 @@ export default function UploadChequePage() {
                                     name="bankName"
                                     value={formData.bankName}
                                     onChange={handleChange}
+                                    error={!!errors.bankName}
+                                    helperText={errors.bankName}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="IFSC Code"
+                                    name="ifscCode"
+                                    value={formData.ifscCode}
+                                    onChange={handleChange}
+                                    error={!!errors.ifscCode}
+                                    helperText={errors.ifscCode}
                                 />
                             </Grid>
 
@@ -339,6 +627,8 @@ export default function UploadChequePage() {
                                     name="chequeNumber"
                                     value={formData.chequeNumber}
                                     onChange={handleChange}
+                                    error={!!errors.chequeNumber}
+                                    helperText={errors.chequeNumber}
                                 />
                             </Grid>
 
@@ -349,8 +639,12 @@ export default function UploadChequePage() {
                                     name="accountNumber"
                                     value={formData.accountNumber}
                                     onChange={handleChange}
+                                    error={!!errors.accountNumber}
+                                    helperText={errors.accountNumber}
                                 />
                             </Grid>
+
+
 
                             <Grid item xs={12} md={6}>
                                 <TextField
@@ -359,22 +653,60 @@ export default function UploadChequePage() {
                                     name="amount"
                                     value={formData.amount}
                                     onChange={handleChange}
+                                    error={!!errors.amount}
+                                    helperText={errors.amount}
                                 />
                             </Grid>
 
                             <Grid item xs={12} md={6}>
                                 <TextField
                                     fullWidth
-                                    type="date"
+                                    label="Signature"
+                                    name="signature"
+                                    value={formData.signature}
+                                    onChange={handleChange}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    label="Cheque Date"
                                     name="chequeDate"
                                     value={formData.chequeDate}
                                     onChange={handleChange}
-                                    InputLabelProps={{
-                                        shrink: true,
-                                    }}
+                                    error={!!errors.chequeDate}
+                                    helperText={errors.chequeDate}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={3}
+                                    label="Bank Address"
+                                    name="bankAddress"
+                                    value={formData.bankAddress}
+                                    onChange={handleChange}
+                                    error={!!errors.bankAddress}
+                                    helperText={errors.bankAddress}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={3}
+                                    label="Amount in Words"
+                                    name="amountInWords"
+                                    value={formData.amountInWords}
+                                    onChange={handleChange}
+                                    error={!!errors.amountInWords}
+                                    helperText={errors.amountInWords}
                                 />
                             </Grid>
                         </Grid>
+
 
                         <Button
                             fullWidth
@@ -387,7 +719,19 @@ export default function UploadChequePage() {
                             }}
                             onClick={handleUpload}
                         >
-                            Upload Cheque
+                            Save Cheque
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            sx={{ ml: 2 }}
+                            onClick={() => {
+                                setImage(null);
+                                setPreview("");
+                                setDetectionImage("");
+                            }}
+                        >
+                            Reset
                         </Button>
                     </Grid>
                 </Grid>
