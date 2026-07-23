@@ -1,23 +1,38 @@
-export async function processCheque(file){
+import axios from "axios";
 
-    const formData = new FormData();
+const api = axios.create({
+    baseURL: "http://localhost:3001/api"
+});
 
-    formData.append("file",file);
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
-    const response = await fetch(
+export default api;
+// export async function processCheque(file){
 
-        "http://localhost:5000/api/process-cheque",
+//     const formData = new FormData();
 
-        {
+//     formData.append("file",file);
 
-            method:"POST",
+//     const response = await fetch(
 
-            body:formData
+//         "http://localhost:5000/api/process-cheque",
 
-        }
+//         {
 
-    );
+//             method:"POST",
 
-    return await response.json();
+//             body:formData
 
-}
+//         }
+
+//     );
+
+//     return await response.json();
+
+// }

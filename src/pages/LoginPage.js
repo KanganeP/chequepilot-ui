@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../controllers/loginController";
 import {
     Box,
     Grid,
@@ -14,7 +16,13 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
+
+
 export default function LoginPage() {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState(""); 
+
     return (
         <Box
             sx={{
@@ -185,6 +193,8 @@ export default function LoginPage() {
                                 fullWidth
                                 label="Email Address"
                                 margin="normal"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
 
                             <TextField
@@ -192,6 +202,8 @@ export default function LoginPage() {
                                 label="Password"
                                 type="password"
                                 margin="normal"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
 
                             <Box
@@ -222,6 +234,7 @@ export default function LoginPage() {
                                     py: 1.7,
                                     borderRadius: 3,
                                 }}
+                                onClick={() =>loginUser(email,password, navigate)}
                             >
                                 Login
                             </Button>

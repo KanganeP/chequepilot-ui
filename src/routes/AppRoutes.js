@@ -13,11 +13,11 @@ function App() {
       <Routes>
         <Route
           path="/dashboard"
-          element={<Dashboard />}
+          element={ <PrivateRoute><Dashboard /></PrivateRoute> }
         />
         <Route
           path="/upload-cheque"
-          element={<UploadChequePage />}
+          element={<PrivateRoute><UploadChequePage /></PrivateRoute>}
         />
       </Routes>
     </BrowserRouter>

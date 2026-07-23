@@ -242,11 +242,7 @@ export default function UploadChequePage() {
 
             const response = await axios.post(
                 "http://localhost:3001/api/cheque",
-                formData,
-                {
-                    shopId: "9d5d9d98-95d3-4982-a8e7-3c33e5e84e61",
-                    userId: "f6f9486a-10fd-4d4d-9a3f-a7b7d4f42b31"
-                }
+                formData
             );
 
             console.log(response.data);
@@ -556,7 +552,8 @@ export default function UploadChequePage() {
                             onClick={handleOCRScan}
                             disabled={
                                 !formData.chequeTypeId ||
-                                !formData.chequeCategoryId
+                                !formData.chequeCategoryId ||
+                                !image
                             }
                         >
                             OCR Scan Cheque
