@@ -4,8 +4,8 @@ import {
   Route
 } from "react-router-dom";
 
-import Dashboard from "./pages/Dashboard";
-import UploadChequePage from "./pages/UploadChequePage";
+import Dashboard from "../pages/dashboard/Dashboard";
+import UploadChequePage from "../pages/cheque/UploadCheque";
 
 function App() {
   return (

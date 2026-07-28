@@ -1,11 +1,7 @@
 import { login } from "../services/authService";
 import { saveLogin } from "../utils/auth";
 
-export const loginUser = async (
-    email,
-    password,
-    navigate
-) => {
+export const loginUser = async (email, password, navigate) => {
     try {
         const result = await login(email, password);
         if (result.success) {

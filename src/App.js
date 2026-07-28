@@ -1,10 +1,10 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import Dashboard from "./pages/Dashboard";
-import UploadChequePage from "./pages/UploadChequePage";
+import LoginPage from "./pages/auth/Login";
+import SignupPage from "./pages/auth/Signup";
+import Dashboard from "./pages/dashboard/Dashboard";
+import UploadChequePage from "./pages/cheque/UploadCheque";
 
 
 function App() {

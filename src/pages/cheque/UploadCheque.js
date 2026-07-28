@@ -14,6 +14,7 @@ import {
     Divider,
 } from "@mui/material";
 import { toWords } from "number-to-words";
+import api from "../../services/api";
 
 export default function UploadChequePage() {
     const [image, setImage] = useState(null);
@@ -24,61 +25,41 @@ export default function UploadChequePage() {
     const [chequeCategories, setChequeCategories] = useState([]);
 
     useEffect(() => {
-
         loadMasters();
-
     }, []);
 
     const loadMasters = async () => {
-
-        const types = await axios.get(
-            "http://localhost:3001/api/cheque/types"
-        );
-
-        const categories = await axios.get(
-            "http://localhost:3001/api/cheque/categories"
-        );
-
+        const types = await api.get("/cheque/types");
+        const categories = await api.get("/cheque/categories");
         setChequeTypes(types.data);
-
         setChequeCategories(categories.data);
-
     };
 
     const [formData, setFormData] = useState({
         chequeTypeId: "",
         chequeCategoryId: "",
-
         partyName: "",
         payeeName: "",
-
         bankName: "",
         bankAddress: "",
         ifscCode: "",
         micrCode: "",
-
         chequeNumber: "",
         accountNumber: "",
-
         amount: "",
         amountInWords: "",
-
         chequeDate: "",
         clearanceDate: "",
-
         remarks: "",
         signature: ""
     });
 
     const formatDate = (value) => {
         const numbers = value.replace(/\D/g, "");
-
         if (numbers.length <= 2)
             return numbers;
-
         if (numbers.length <= 4)
             return numbers.slice(0, 2) + "/" + numbers.slice(2);
-
         return (
             numbers.slice(0, 2) +
             "/" +
@@ -89,60 +70,41 @@ export default function UploadChequePage() {
     };
 
     const validateForm = () => {
-
         let temp = {};
-
         if (!formData.partyName.trim())
             temp.partyName = "Party Name is required";
-
         if (!formData.payeeName.trim())
             temp.payeeName = "Payee Name is required";
-
         if (!formData.bankName.trim())
             temp.bankName = "Bank Name is required";
-
         if (!formData.ifscCode.trim())
             temp.ifscCode = "IFSC Code is required";
         else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode))
             temp.ifscCode = "Invalid IFSC";
-
         if (!formData.accountNumber.trim())
             temp.accountNumber = "Account Number is required";
-
         if (!formData.chequeNumber.trim())
             temp.chequeNumber = "Cheque Number is required";
-
         if (!formData.amount)
             temp.amount = "Amount is required";
-
         if (!formData.chequeDate)
             temp.chequeDate = "Cheque Date is required";
-
         if (!formData.bankAddress.trim())
             temp.bankAddress = "Bank Address is required";
-
         if (!formData.amountInWords.trim())
             temp.amountInWords = "Amount in Words is required";
-
         setErrors(temp);
-
         return Object.keys(temp).length === 0;
     };
 
     const handleImageChange = (event) => {
-
         const file = event.target.files[0];
-
         if (file) {
-
             setImage(file);
-
             setPreview(
                 URL.createObjectURL(file)
             );
-
         }
-
     };
 
     const handleOCRScan = async () => {
@@ -208,11 +170,8 @@ export default function UploadChequePage() {
 
     const handleChange = (e) => {
         let { name, value } = e.target;
-
         if (name === "amount") {
-
             value = value.replace(/[^\d.]/g, "");
-
             setFormData(prev => ({
                 ...prev,
                 amount: value,
@@ -222,7 +181,6 @@ export default function UploadChequePage() {
                         : toWords(Number(value))
                             .replace(/\b\w/g, c => c.toUpperCase()) + " Rupees Only"
             }));
-
             return;
         }
         if (name === "chequeDate") {
@@ -235,36 +193,24 @@ export default function UploadChequePage() {
     };
 
     const handleUpload = async () => {
-
         if (!validateForm()) return;
-
         try {
-
-            const response = await axios.post(
-                "http://localhost:3001/api/cheque",
+            const response = await api.post(
+                "/cheque",
                 formData
             );
-
             console.log(response.data);
-
             alert("Cheque Saved Successfully");
-
         } catch (err) {
-
             console.log(err);
-
             if (err.response) {
                 console.log(err.response.data);
-                alert(err.response.data.error || JSON.stringify(err.response.data));
+                alert(err.response.data.error || err.response.data.message);
             } else {
                 alert(err.message);
             }
-
         }
-
     };
-
-
 
     return (
         <Box

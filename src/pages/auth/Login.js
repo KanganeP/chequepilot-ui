@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../controllers/loginController";
+import { loginUser } from "../../actions/loginController";
 import {
     Box,
     Grid,
@@ -16,12 +16,10 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
-
-
 export default function LoginPage() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
-    const [password, setPassword] = useState(""); 
+    const [password, setPassword] = useState("");
 
     return (
         <Box
@@ -234,7 +232,7 @@ export default function LoginPage() {
                                     py: 1.7,
                                     borderRadius: 3,
                                 }}
-                                onClick={() =>loginUser(email,password, navigate)}
+                                onClick={() => loginUser(email, password, navigate)}
                             >
                                 Login
                             </Button>
