@@ -1,9 +1,4 @@
-import {
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemText
-} from "@mui/material";
+import { Drawer, List, ListItemButton, ListItemText } from "@mui/material";
 
 const menu = [
   "Dashboard",
