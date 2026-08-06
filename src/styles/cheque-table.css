@@ -1,0 +1,135 @@
+/* ==========================================================================
+   Cheque table — extends users-table.css / dashboard.css vars.
+   Import dashboard.css and users-table.css before this file for shared
+   .users-table-card / .users-table / row styles.
+   ========================================================================== */
+
+.users-table-toolbar {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.status-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.status-filter-chip {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-filter-chip:hover { background: #FAFBFD; }
+
+.status-filter-chip.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.cheque-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cheque-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: #F1F4FA;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.cheque-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cheque-cell-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cheque-number {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.cheque-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.cell-strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bank-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.bank-cell-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.overdue-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #FDE9E9;
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Status badges — same palette used in the dashboard's donut chart */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-pending { background: #FFF4E0; color: #B8790D; }
+.status-due { background: #E9F0FF; color: var(--brand-dark); }
+.status-overdue { background: #FDE9E9; color: var(--red); }
+.status-cleared { background: #E5F7EE; color: var(--green); }
+.status-bounced { background: #EFE7FF; color: var(--purple); }
+.status-security { background: #E0F7FA; color: #0E7C90; }
+.status-default { background: #F1F4FA; color: var(--text-secondary); }
+
+.ocr-verified { color: var(--green); }
+.ocr-unverified { color: var(--text-muted); }
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 700px) {
+  .status-filter-group { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+}

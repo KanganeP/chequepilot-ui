@@ -1,16 +1,19 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import Layout from "./pages/dashboard/Layout";
 import LoginPage from "./pages/auth/Login";
 import SignupPage from "./pages/auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
 import UploadChequePage from "./pages/cheque/UploadCheque";
-
+import CreateUserPage from "./pages/user/CreateUser";
+import UsersTable from "./pages/user/UsersTable";
+import ChequeList from "./pages/cheque/ChequeList";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
         {/* Default Route */}
         <Route
           path="/"
@@ -29,16 +32,31 @@ function App() {
         />
 
         {/* Dashboard */}
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
+        <Route element={<Layout />}>
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
 
-        {/* Future Modules */}
-        <Route
-          path="/upload-cheques"
-          element={<UploadChequePage />}
-        />
+          {/* Future Modules */}
+          <Route
+            path="/upload-cheques"
+            element={<UploadChequePage />}
+          />
+          <Route
+            path="/users"
+            element={<UsersTable />}
+          />
+          <Route
+            path="/users/create"
+            element={<CreateUserPage />}
+          />
+
+          <Route
+            path="/cheques/list"
+            element={<ChequeList />}
+          />
+        </Route>
 
         <Route
           path="/security-cheques"
